@@ -1,4 +1,4 @@
-package com.scan.bcscan.data;
+package com.github.bcscan.data;
 
 public class ScannedData {
 

@@ -1,4 +1,4 @@
-package com.scan.libbcscan;
+package com.github.libbccan;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;

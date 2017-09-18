@@ -1,15 +1,15 @@
-package com.scan.bcscan;
+package com.github.bcscan;
 
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
-import com.scan.bcscan.data.AppConstants;
-import com.scan.bcscan.data.AppUtils;
-import com.scan.bcscan.data.DataObject;
-import com.scan.bcscan.data.DatabaseHandler;
-import com.scan.bcscan.data.InsertCoreDataTask;
-import com.scan.bcscan.data.ScannedData;
+import com.github.bcscan.data.AppConstants;
+import com.github.bcscan.data.AppUtils;
+import com.github.bcscan.data.DataObject;
+import com.github.bcscan.data.DatabaseHandler;
+import com.github.bcscan.data.InsertCoreDataTask;
+import com.github.bcscan.data.ScannedData;
 
 import java.util.Date;
 import java.util.List;

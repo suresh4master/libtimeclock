@@ -1,4 +1,4 @@
-package com.scan.bcscan.data;
+package com.github.bcscan.data;
 
 import android.app.AlertDialog;
 import android.content.Context;

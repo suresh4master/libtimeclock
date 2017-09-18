@@ -1,4 +1,4 @@
-package com.scan.bcscan.data;
+package com.github.bcscan.data;
 
 /**
  * Created by SureshSri on 02/10/2017.
