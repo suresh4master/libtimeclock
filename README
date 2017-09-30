@@ -10,11 +10,13 @@ and get the ID as a String object
 2. clockID (String)
 - clockID is available from the library class called appActions
 
-will call the method
+will call the methods
 
-getCoreData (String data)
+2.1 getCoreData (String data)
 
-to get the ID from the scann
+to get the ID from the scanning hardware
+
+2.2 clockID ()
 
 insertScanDetails (String data[])
 
