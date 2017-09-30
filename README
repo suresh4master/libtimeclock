@@ -1,0 +1,21 @@
+This library gives a way to scan an ID (Barcode, RFID, etc. - to be
+implemented by the user) and attach the scan time as a timestamp with separate
+date and time.
+
+The library user is responsible for creating a method with 2 statements:
+
+1. scanID () - call the scanning hardware (barcode scanner, rfid scanner, etc.)
+and get the ID as a String object
+
+2. clockID (String)
+- clockID is available from the library class called appActions
+
+will call the method
+
+getCoreData (String data)
+
+to get the ID from the scann
+
+insertScanDetails (String data[])
+
+to get
