@@ -36,7 +36,7 @@ public class InsertCoreDataTask extends AsyncTask<String, Void, String> {
     @Override
     public String doInBackground(String... params) {
         insertCoreData(coreDataList);
-        Log.w(AppConstants.LOG_INFO, "Start Reading CSV file ");
+        Log.w(LibConstants.LOG_INFO, "Start Reading CSV file ");
         return "Success";
     }
 
@@ -56,13 +56,13 @@ public class InsertCoreDataTask extends AsyncTask<String, Void, String> {
             if (i == 5000) {
                 i = 0;
                 dbHandler.addDataObjectsList(dataObjectsList);
-                Log.w(AppConstants.LOG_INFO, "Completed inserting: " + totalSize);
+                Log.w(LibConstants.LOG_INFO, "Completed inserting: " + totalSize);
                 dataObjectsList = new ArrayList<DataObject>();
             }
         }
         if (i > 0) {
             dbHandler.addDataObjectsList(dataObjectsList);
-            Log.w(AppConstants.LOG_INFO, "Completed inserting: " + totalSize);
+            Log.w(LibConstants.LOG_INFO, "Completed inserting: " + totalSize);
             dataObjectsList = new ArrayList<DataObject>();
         }
 
@@ -89,7 +89,7 @@ public class InsertCoreDataTask extends AsyncTask<String, Void, String> {
         showToastMsg("Successfully updated database");
         handler.post(new Runnable() {
             public void run() {
-                AppUtils.showAlertDialog(context, "Success", "Updated successfully");
+                LibUtils.showAlertDialog(context, "Success", "Updated successfully");
             }
         });
     }
@@ -97,7 +97,7 @@ public class InsertCoreDataTask extends AsyncTask<String, Void, String> {
     private void showToastMsg(final String msg) {
         handler.post(new Runnable() {
             public void run() {
-                Log.w(AppConstants.LOG_INFO, msg);
+                Log.w(LibConstants.LOG_INFO, msg);
                 Toast.makeText(context, msg, Toast.LENGTH_LONG).show();
             }
         });

@@ -7,15 +7,11 @@ import android.content.DialogInterface;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class AppUtils {
+public class LibUtils {
     private static final String EMPTY_STR = "";
 
     public static boolean isBlank(String str) {
         return (null == str || EMPTY_STR.equalsIgnoreCase(str.trim()));
-    }
-
-    public static String getDefaultStr(String str) {
-        return isBlank(str) ? "" : str;
     }
 
     public static void showAlertDialog(Context context, String title, String msg) {
@@ -33,7 +29,8 @@ public class AppUtils {
 
     public static String getDateStr(Date date) {
         return (null != date) ?
-                new SimpleDateFormat(AppConstants.DATE_FORMAT)
+                new SimpleDateFormat(LibConstants.DATE_FORMAT)
                         .format(date) : null;
     }
+
 }

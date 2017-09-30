@@ -4,8 +4,8 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
-import com.github.bcscan.data.AppConstants;
-import com.github.bcscan.data.AppUtils;
+import com.github.bcscan.data.LibConstants;
+import com.github.bcscan.data.LibUtils;
 import com.github.bcscan.data.DataObject;
 import com.github.bcscan.data.DatabaseHandler;
 import com.github.bcscan.data.InsertCoreDataTask;
@@ -21,7 +21,12 @@ import java.util.List;
 
 public class AppActivities extends AppCompatActivity {
 
+    private Context context;
     private DatabaseHandler dbHandler;
+
+    public AppActivities(Context context) {
+        this.context = context;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,10 +36,9 @@ public class AppActivities extends AppCompatActivity {
     /**
      * Inserts the supplied data into CoreData table
      *
-     * @param context
      * @param coreData
      */
-    public void insertCoreData(Context context, List<String[]> coreData) {
+    public void insertCoreData(List<String[]> coreData) {
         dbHandler = DatabaseHandler.getDBInstance(context);
         InsertCoreDataTask insertCoreDataTask = new InsertCoreDataTask(context, dbHandler, coreData);
         insertCoreDataTask.execute();
@@ -43,20 +47,18 @@ public class AppActivities extends AppCompatActivity {
     /**
      * Gets the coreDat for the supplied key
      *
-     * @param context
      * @param key
      * @return
      */
-    public DataObject getCoreData(Context context, String key) {
+    public DataObject getCoreData(String key) {
         dbHandler = DatabaseHandler.getDBInstance(context);
         return dbHandler.getDataObject(key);
     }
 
     /**
-     * @param context
      * @param data
      */
-    public void insertScanDetails(Context context, String... data) {
+    public void insertScanDetails(String... data) {
         dbHandler = DatabaseHandler.getDBInstance(context);
         ScannedData scannedData = new ScannedData();
         switch (data.length) {
@@ -72,39 +74,41 @@ public class AppActivities extends AppCompatActivity {
                 scannedData.setColumn2(data[1]);
                 scannedData.setColumn3(data[2]);
                 break;
+            case 4:
+                scannedData.setColumn1(data[0]);
+                scannedData.setColumn2(data[1]);
+                scannedData.setColumn3(data[2]);
+                scannedData.setColumn3(data[3]);
+                break;
             default:
         }
-        scannedData.setDate(AppConstants.getCurrentDateStr());
-        scannedData.setTime(AppConstants.getCurrentTimeStr());
         dbHandler.addScannedData(scannedData);
     }
 
     /**
      * Returns the ScannedData for the specified date
      *
-     * @param context
      * @param date
      * @return
      */
-    public List<ScannedData> getScannedDataByDate(Context context, Date date) {
+    public List<ScannedData> getScannedDataByDate(Date date) {
         if (null == date) {
             throw new RuntimeException("Please supply valid date");
         }
         dbHandler = DatabaseHandler.getDBInstance(context);
         return (null != date) ?
-                dbHandler.getScannedDetails(AppUtils.getDateStr(date))
+                dbHandler.getScannedDetails(LibUtils.getDateStr(date))
                 : null;
     }
 
     /**
      * Returns the ScannedData for the specified dates
      *
-     * @param context
      * @param fromDate
      * @param toDate
      * @return
      */
-    public List<ScannedData> getScannedDataByDateRange(Context context, Date fromDate, Date toDate) {
+    public List<ScannedData> getScannedDataByDateRange(Date fromDate, Date toDate) {
         dbHandler = DatabaseHandler.getDBInstance(context);
         Date temp = fromDate;
         if ((null == fromDate) && (null == toDate)) {
@@ -115,17 +119,16 @@ public class AppActivities extends AppCompatActivity {
             toDate = temp;
         }
         return (null != fromDate) && (null != toDate) ?
-                dbHandler.getScannedDetails(AppUtils.getDateStr(fromDate), AppUtils.getDateStr(toDate))
+                dbHandler.getScannedDetails(LibUtils.getDateStr(fromDate), LibUtils.getDateStr(toDate))
                 : null;
     }
 
     /**
      * Returns the complete Scanned data
      *
-     * @param context
      * @return
      */
-    public List<ScannedData> getAllScannedData(Context context) {
+    public List<ScannedData> getAllScannedData() {
         dbHandler = DatabaseHandler.getDBInstance(context);
         return dbHandler.getScannedDetails();
     }
@@ -133,11 +136,10 @@ public class AppActivities extends AppCompatActivity {
     /**
      * Inserts the supplied config into Config table
      *
-     * @param context
      * @param key
      * @param value
      */
-    public void InsertConfig(Context context, String key, String value) {
+    public void insertConfig(String key, String value) {
         dbHandler = DatabaseHandler.getDBInstance(context);
         dbHandler.updateConfig(key, value);
     }
@@ -145,12 +147,40 @@ public class AppActivities extends AppCompatActivity {
     /**
      * Gets the configData for the supplied key
      *
-     * @param context
      * @param key
      * @return
      */
-    public String getConfigValue(Context context, String key) {
+    public String getConfigValue(String key) {
         dbHandler = DatabaseHandler.getDBInstance(context);
         return dbHandler.getConfigValue(key);
+    }
+
+    /**
+     * Get scanned data for the day
+     *
+     * @return
+     */
+    public Integer getTodayScannedCount() {
+        dbHandler = DatabaseHandler.getDBInstance(context);
+        return dbHandler.getDayScannedDataCount(LibConstants.getCurrentDateStr());
+    }
+
+    /**
+     * Get scanned data count for the supplied date
+     *
+     * @param date
+     * @return
+     */
+    public Integer getScannedCountForDay(Date date) {
+        dbHandler = DatabaseHandler.getDBInstance(context);
+        return dbHandler.getDayScannedDataCount(LibUtils.getDateStr(date));
+    }
+
+    /**
+     * Drop and create CoreData table
+     */
+    public void dropAndCreateCoreDataTable() {
+        dbHandler = DatabaseHandler.getDBInstance(context);
+        dbHandler.dropAndCreateCoreDataTable();
     }
 }
