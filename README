@@ -1,23 +1,47 @@
-This library gives a way to scan an ID (Barcode, RFID, etc. - to be
-implemented by the user) and attach the scan time as a timestamp with separate
-date and time.
+libtimeclock (Android)
 
-The library user is responsible for creating a method with 2 statements:
+This library timestamps [1] given data (e.g., a scanned text ID [2])
+and inserts them into an SQLite DB table.
 
-1. scanID () - call the scanning hardware (barcode scanner, rfid scanner, etc.)
-and get the ID as a String object
+Both scanned ID and timestamp are returned in a scannedData object. Also,
+if scannedID is found in an optional reference data table, its data
+columns are added to the object for display.
 
-2. clockID (String)
-- clockID is available from the library class called appActions
+Sample Display:
 
-will call the methods
+    Scanned ID
+    [refData col 1]
+    [refData col 2]
+    [refData col 2]
+    Scan Date
+    Scan Time
 
-2.1 getCoreData (String data)
+Scanned data can be searched by scannedID (text string) or date range
+([from-date], [to-date]) for export to CSV format.
 
-to get the ID from the scanning hardware
+The library user must create a method with 2 statements:
 
-2.2 clockID ()
+    1. String scanID () - scan [2] and return scanned ID as a String object.
 
-insertScanDetails (String data[])
+    2. scannedData clockID (String scannedID)
 
-to get
+        appActions::clockID() creates a scannedData object with scannedID
+        and current timestamp and calls:
+
+        2.1 refData getRefData (String scannedID)
+
+            to look up scannedID in the optional reference data table and
+            return associated data in a refData object. If the refData
+            object is not empty, its contents are added to scannedData.
+
+        2.2 scannedData insertScanData (String id, scannedData sd)
+
+            to insert scannedID, timestamp, and reference data (if found)
+            into the scannedData table.
+
+            scannedData is returned for display.
+
+[1] Current date [yyyy/mm/dd] and time [HH:MM:SS], as 2 separate fields
+[2] from Barcode/RFID/etc. scanner - scanner interface to be implemented
+    by the library user. See app folder for sample code using the ZXing
+    Barcode Scanner libary.
