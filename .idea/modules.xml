@@ -3,8 +3,9 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/bcscan/bcscan.iml" filepath="$PROJECT_DIR$/bcscan/bcscan.iml" />
       <module fileurl="file://$PROJECT_DIR$/libbcscan.iml" filepath="$PROJECT_DIR$/libbcscan.iml" />
+      <module fileurl="file://$PROJECT_DIR$/libtimeclock.iml" filepath="$PROJECT_DIR$/libtimeclock.iml" />
+      <module fileurl="file://$PROJECT_DIR$/timeclock/timeclock.iml" filepath="$PROJECT_DIR$/timeclock/timeclock.iml" />
     </modules>
   </component>
 </project>
