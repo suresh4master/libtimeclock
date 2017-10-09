@@ -5,33 +5,38 @@ and inserts them into an SQLite table. This will be useful for custom
 applications for timeclocking/scanning (e.g., inventory tracking) that
 need automatic timestamping of scanned data.
 
-Both scanned ID and timestamp are returned in a scannedData object.  If an
-optional reference database with scannedID data as unique key is present,
-data columns for that key may looked-up and returned as well. Also,
-one app-specific configuration field may be stored with the scanned data.
+Both scanned ID and timestamp are returned in a scannedData object.
+If an optional reference table with scannedID data as unique key is
+present, data columns for that scannedID key may looked-up and returned
+as well. Also, one app-specific configuration field may be stored with
+the scanned data.
 
 Sample Display:
 
     Scanned ID
     [refData col 1]
     [refData col 2]
-    [user-specified config data]
     Scan Date
     Scan Time
+    [user-specified config data]
 
-Scanned data can be searched by scannedID (text string) or date range
-([from-date], [to-date]) for export to CSV format. If date range is empty,
-all data are returned.
+Scanned data can be searched by:
+    1. scannedID (text string)
+    2. a single date
+    3. date range (from-date, to-date)
+    4. and all data
+and will be exported to CSV format. [4]
 
-The libtimeclock user must create a method (e.g. insertAttendance) with these statements:
+The libtimeclock user must create a method (e.g. insertAttendance)
+with these statements:
 
     1. String scanID () - scan and return scanned ID as a String object. [2]
 
-    2. scannedData clockID (String scannedID, String configDataKey)
+    2. scannedData clockID (String scannedID, String configKey)
 
         appActivity::clockID() creates a scannedData object with:
             - scannedID
-            - value for configDataKey [3]
+            - value for configKey [3]
             - current timestamp
         
         and also calls:
@@ -45,20 +50,20 @@ The libtimeclock user must create a method (e.g. insertAttendance) with these st
 
         2.2 scannedData addScanData (String id, scannedData sd)
 
-            to insert scannedID, timestamp, configDataKey value and
-            reference data (if found) into the scannedData table.
+            to insert scannedID, timestamp, configKey value and
+            reference data (if found) into the scanned_data table.
 
-            scannedData is returned for display.
+    scannedData is returned for display.
 
 [1] Current date [yyyy/mm/dd] and time [HH:MM:SS], as 2 separate fields
+
 [2] from Barcode/RFID/other scanner - the scanner interface must be
     implemented by the library user. See app folder for sample code
     using the ZXing Barcode Scanner libary.
+
 [3] An Android app may have configuration data, e.g., location of device scanning
     the data. This can be added to the scanned data details, e.g.:
     String location =
         appActivities.getConfigValue(AppConstants.CURRENT_LOCATION));
 
-
-Documentation for appActions class is in github.com/suresh4master/libtimeclock
-wiki
+[4] Documentation for appActivities class methods is in github.com/suresh4master/libtimeclock wiki
