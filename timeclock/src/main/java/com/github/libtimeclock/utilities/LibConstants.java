@@ -1,20 +1,17 @@
-package com.github.libtimeclock.data;
+package com.github.libtimeclock.utilities;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-/**
- * Created by SureshSri on 02/22/2017.
- */
-
 public final class LibConstants {
 
-    public static final String TIME_FORMAT = "HH:mm";
+    public static final String TIME_FORMAT = "HH:mm:ss";
     public static final String DATE_FORMAT = "yyyy/MM/dd";
     public static final String CURRENT_DATE = "current_date";
     public static final String LOG_INFO = "Info-libtimeclock";
     public static final String LOG_ERROR = "Error-libtimeclock";
+    public static final String REF_DATA_UPDATED_DATE = "ref_data_updated_date";
 
     public static DateFormat sdf;
 
