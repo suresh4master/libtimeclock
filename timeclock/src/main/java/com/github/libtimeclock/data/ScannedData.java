@@ -1,28 +1,33 @@
 package com.github.libtimeclock.data;
 
+import com.github.libtimeclock.utilities.LibConstants;
+
+/**
+ * POJO for ScannedData
+ */
 public class ScannedData {
 
+    private String refId;
     private String column1;
     private String column2;
     private String column3;
-    private String column4;
     private String date;
     private String time;
 
-    public ScannedData(String column1, String column2, String column3, String column4) {
+    public ScannedData(String refId, String column1, String column2, String column3) {
+        this.refId = refId;
         this.column1 = column1;
         this.column2 = column2;
         this.column3 = column3;
-        this.column4 = column4;
         this.date = LibConstants.getCurrentDateStr();
         this.time = LibConstants.getCurrentTimeStr();
     }
 
-    public ScannedData(String column1, String column2, String column3, String column4, String date, String time) {
+    public ScannedData(String refId, String column1, String column2, String column3, String date, String time) {
+        this.refId = refId;
         this.column1 = column1;
         this.column2 = column2;
         this.column3 = column3;
-        this.column4 = column4;
         this.date = date;
         this.time = time;
     }
@@ -56,12 +61,12 @@ public class ScannedData {
         this.column3 = column3;
     }
 
-    public String getColumn4() {
-        return column4;
+    public String getRefId() {
+        return refId;
     }
 
-    public void setColumn4(String column4) {
-        this.column4 = column4;
+    public void setRefId(String refId) {
+        this.refId = refId;
     }
 
     public String getDate() {

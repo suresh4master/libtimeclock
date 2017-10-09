@@ -4,22 +4,20 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
-import com.github.libtimeclock.data.DataObject;
-import com.github.libtimeclock.data.DatabaseHandler;
-import com.github.libtimeclock.data.InsertCoreDataTask;
-import com.github.libtimeclock.data.LibConstants;
-import com.github.libtimeclock.data.LibUtils;
+import com.github.libtimeclock.data.RefData;
+import com.github.libtimeclock.db.DatabaseHandler;
+import com.github.libtimeclock.utilities.LibConstants;
+import com.github.libtimeclock.utilities.LibUtils;
 import com.github.libtimeclock.data.ScannedData;
 
 import java.util.Date;
 import java.util.List;
 
-
 /**
- * Created by SureshSri on 08/28/2017.
+ * Activities that can be done by the library
  */
-
 public class AppActivities extends AppCompatActivity {
+
 
     private Context context;
     private DatabaseHandler dbHandler;
@@ -34,55 +32,49 @@ public class AppActivities extends AppCompatActivity {
     }
 
     /**
-     * Inserts the supplied data into CoreData table
+     * Inserts the supplied data into RefData
      *
-     * @param coreData
+     * @param refDatas
      */
-    public void insertCoreData(List<String[]> coreData) {
+    public void addRefData(List<RefData> refDatas) {
         dbHandler = DatabaseHandler.getDBInstance(context);
-        InsertCoreDataTask insertCoreDataTask = new InsertCoreDataTask(context, dbHandler, coreData);
-        insertCoreDataTask.execute();
+        dbHandler.addRefDataList(refDatas);
     }
 
     /**
-     * Gets the coreDat for the supplied key
+     * Gets the RefData for the supplied refId
      *
-     * @param key
+     * @param refId
      * @return
      */
-    public DataObject getCoreData(String key) {
+    public RefData getRefData(String refId) {
+        validateStr(refId);
         dbHandler = DatabaseHandler.getDBInstance(context);
-        return dbHandler.getDataObject(key);
+        return dbHandler.getRefData(refId);
     }
 
     /**
-     * @param data
+     * Records the refId information as ScannedData
+     *
+     * @param refId     - RefId for the Scanned data
+     * @param configKey - ConfigKey where additional info
+     * @return
      */
-    public void insertScanDetails(String... data) {
+    public ScannedData clockId(String refId, String configKey) {
+        validateStr(refId);
         dbHandler = DatabaseHandler.getDBInstance(context);
+        RefData refData = dbHandler.getRefData(refId);
         ScannedData scannedData = new ScannedData();
-        switch (data.length) {
-            case 1:
-                scannedData.setColumn1(data[0]);
-                break;
-            case 2:
-                scannedData.setColumn1(data[0]);
-                scannedData.setColumn2(data[1]);
-                break;
-            case 3:
-                scannedData.setColumn1(data[0]);
-                scannedData.setColumn2(data[1]);
-                scannedData.setColumn3(data[2]);
-                break;
-            case 4:
-                scannedData.setColumn1(data[0]);
-                scannedData.setColumn2(data[1]);
-                scannedData.setColumn3(data[2]);
-                scannedData.setColumn3(data[3]);
-                break;
-            default:
+        scannedData.setRefId(refId);
+        if (!LibUtils.isBlank(configKey)) {
+            scannedData.setColumn3(dbHandler.getConfigValue(configKey));
+        }
+        if (null != refData) {
+            scannedData.setColumn1(refData.getColumn1());
+            scannedData.setColumn2(refData.getColumn2());
         }
         dbHandler.addScannedData(scannedData);
+        return scannedData;
     }
 
     /**
@@ -97,7 +89,7 @@ public class AppActivities extends AppCompatActivity {
         }
         dbHandler = DatabaseHandler.getDBInstance(context);
         return (null != date) ?
-                dbHandler.getScannedDetails(LibUtils.getDateStr(date))
+                dbHandler.getScannedDataByDate(LibUtils.getDateStr(date))
                 : null;
     }
 
@@ -119,7 +111,7 @@ public class AppActivities extends AppCompatActivity {
             toDate = temp;
         }
         return (null != fromDate) && (null != toDate) ?
-                dbHandler.getScannedDetails(LibUtils.getDateStr(fromDate), LibUtils.getDateStr(toDate))
+                dbHandler.getScannedDataByDateRange(LibUtils.getDateStr(fromDate), LibUtils.getDateStr(toDate))
                 : null;
     }
 
@@ -130,16 +122,29 @@ public class AppActivities extends AppCompatActivity {
      */
     public List<ScannedData> getAllScannedData() {
         dbHandler = DatabaseHandler.getDBInstance(context);
-        return dbHandler.getScannedDetails();
+        return dbHandler.getAllScannedData();
     }
 
     /**
-     * Inserts the supplied config into Config table
+     * Get scanned data for the supplied refId
+     *
+     * @param refId
+     * @return
+     */
+    public List<ScannedData> getScannedDataById(String refId) {
+        validateStr(refId);
+        dbHandler = DatabaseHandler.getDBInstance(context);
+        return dbHandler.getScannedDataByRefId(refId);
+    }
+
+    /**
+     * Inserts the supplied config into Config
      *
      * @param key
      * @param value
      */
     public void insertConfig(String key, String value) {
+        validateStr(key);
         dbHandler = DatabaseHandler.getDBInstance(context);
         dbHandler.updateConfig(key, value);
     }
@@ -151,6 +156,7 @@ public class AppActivities extends AppCompatActivity {
      * @return
      */
     public String getConfigValue(String key) {
+        validateStr(key);
         dbHandler = DatabaseHandler.getDBInstance(context);
         return dbHandler.getConfigValue(key);
     }
@@ -177,10 +183,16 @@ public class AppActivities extends AppCompatActivity {
     }
 
     /**
-     * Drop and create CoreData table
+     * Resets the RefData
      */
-    public void dropAndCreateCoreDataTable() {
+    public void resetRefData() {
         dbHandler = DatabaseHandler.getDBInstance(context);
         dbHandler.dropAndCreateCoreDataTable();
+    }
+
+    private void validateStr(String str) {
+        if (LibUtils.isBlank(str)) {
+            throw new RuntimeException("Please supply data is not valid: " + str);
+        }
     }
 }
