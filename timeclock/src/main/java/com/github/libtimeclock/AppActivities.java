@@ -78,6 +78,32 @@ public class AppActivities extends AppCompatActivity {
     }
 
     /**
+     * Records the refId information as ScannedData
+     *
+     * @param refId
+     * @param configKey
+     * @param additionalInfo
+     * @return
+     */
+    public ScannedData clockId(String refId, String configKey, String additionalInfo) {
+        validateStr(refId);
+        dbHandler = DatabaseHandler.getDBInstance(context);
+        RefData refData = dbHandler.getRefData(refId);
+        ScannedData scannedData = new ScannedData();
+        scannedData.setRefId(refId);
+        scannedData.setColumn4(additionalInfo);
+        if (!LibUtils.isBlank(configKey)) {
+            scannedData.setColumn3(dbHandler.getConfigValue(configKey));
+        }
+        if (null != refData) {
+            scannedData.setColumn1(refData.getColumn1());
+            scannedData.setColumn2(refData.getColumn2());
+        }
+        dbHandler.addScannedData(scannedData);
+        return scannedData;
+    }
+
+    /**
      * Returns the ScannedData for the specified date
      *
      * @param date
@@ -172,6 +198,17 @@ public class AppActivities extends AppCompatActivity {
     }
 
     /**
+     * Get scanned data for the supplied Date and the configKey
+     *
+     * @return
+     */
+    public Integer getScannedCountByConfigKeyAndDate(String configKey, Date date) {
+        dbHandler = DatabaseHandler.getDBInstance(context);
+        validateStr(configKey);
+        return dbHandler.getDayScannedDataCount(dbHandler.getConfigValue(configKey), LibUtils.getDateStr(date));
+    }
+
+    /**
      * Get scanned data count for the supplied date
      *
      * @param date
@@ -192,7 +229,7 @@ public class AppActivities extends AppCompatActivity {
 
     private void validateStr(String str) {
         if (LibUtils.isBlank(str)) {
-            throw new RuntimeException("Please supply data is not valid: " + str);
+            throw new RuntimeException("Supplied data is not valid: " + str);
         }
     }
 }

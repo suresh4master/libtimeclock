@@ -32,6 +32,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String KEY_COLUMN1 = "column1";
     private static final String KEY_COLUMN2 = "column2";
     private static final String KEY_COLUMN3 = "column3";
+    private static final String KEY_COLUMN4 = "column4";
 
     private static final String KEY_TIME = "time";
     private static final String KEY_DATE = "date";
@@ -51,6 +52,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             .append(KEY_COLUMN1).append(" TEXT, ")
             .append(KEY_COLUMN2).append(" TEXT, ")
             .append(KEY_COLUMN3).append(" TEXT, ")
+            .append(KEY_COLUMN4).append(" TEXT, ")
             .append(KEY_DATE).append(" TEXT, ")
             .append(KEY_TIME).append(" TEXT )").toString();
 
@@ -137,8 +139,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         try {
             ContentValues values = new ContentValues();
             values.put(KEY_REF_ID, refData.getRefId());
-            values.put(KEY_COLUMN1, refData.getColumn2());
-            values.put(KEY_COLUMN2, refData.getColumn1());
+            values.put(KEY_COLUMN1, refData.getColumn1());
+            values.put(KEY_COLUMN2, refData.getColumn2());
             db.insert(TABLE_REF_DATA, null, values);
         } catch (Exception ex) {
             Log.w(LibConstants.LOG_ERROR, "Error inserting : " + refData.getRefId() + "- " + ex.getMessage());
@@ -156,8 +158,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         try {
             if (null != cursor) {
                 cursor.moveToFirst();
-                refData = new RefData(cursor.getString(0),
-                        cursor.getString(1), cursor.getString(2));
+                refData = new RefData(cursor.getString(0), cursor.getString(1), cursor.getString(2));
                 cursor.close();
             }
         } catch (Exception ex) {
@@ -185,6 +186,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             values.put(KEY_COLUMN1, scannedData.getColumn1());
             values.put(KEY_COLUMN2, scannedData.getColumn2());
             values.put(KEY_COLUMN3, scannedData.getColumn3());
+            values.put(KEY_COLUMN4, scannedData.getColumn4());
             values.put(KEY_DATE, scannedData.getDate());
             values.put(KEY_TIME, scannedData.getTime());
             db.insert(TABLE_SCANNED_DATA, null, values);
@@ -207,18 +209,41 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         }
     }
 
+    public Integer getDayScannedDataCount(String configKeyValue, String dateStr) {
+        try {
+            String countQuery = new StringBuilder("SELECT  * FROM ")
+                    .append(TABLE_SCANNED_DATA)
+                    .append(" WHERE ").append(KEY_DATE).append("='").append(dateStr).append("'")
+                    .append(" AND ").append(KEY_COLUMN3).append("='").append(configKeyValue).append("'")
+                    .toString();
+            SQLiteDatabase db = this.getReadableDatabase();
+            Cursor cursor = db.rawQuery(countQuery, null);
+            int cnt = cursor.getCount();
+            cursor.close();
+            return cnt;
+        } catch (Exception ex) {
+            Log.w(LibConstants.LOG_ERROR, "Couldn't find Scanned Data", ex);
+            return 0;
+        }
+    }
+
     public List<ScannedData> getScannedDataByDate(String dateStr) {
         List<ScannedData> scannedDatas = new ArrayList<ScannedData>();
         if (!LibUtils.isBlank(dateStr)) {
             try {
                 SQLiteDatabase db = this.getReadableDatabase();
 
-                Cursor c = db.query(TABLE_SCANNED_DATA, new String[]{KEY_REF_ID,
-                                KEY_COLUMN1, KEY_COLUMN2, KEY_COLUMN3, KEY_DATE, KEY_TIME}, KEY_DATE + "=?",
+                Cursor c = db.query(TABLE_SCANNED_DATA, new String[]{
+                                KEY_REF_ID,
+                                KEY_COLUMN1, KEY_COLUMN2, KEY_COLUMN3,
+                                KEY_COLUMN4, KEY_DATE, KEY_TIME},
+                        KEY_DATE + "=?",
                         new String[]{String.valueOf(dateStr)}, null, null, null, null);
                 for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
-                    scannedDatas.add(new ScannedData(c.getString(0), c.getString(1),
-                            c.getString(2), c.getString(3), c.getString(4), c.getString(5)));
+                    scannedDatas.add(new ScannedData(
+                            c.getString(0), c.getString(1),
+                            c.getString(2), c.getString(3),
+                            c.getString(4), c.getString(5), c.getString(6)));
                 }
             } catch (Exception ex) {
                 Log.w(LibConstants.LOG_ERROR, "Couldn't find ScannedData for date: " + dateStr, ex);
@@ -233,12 +258,16 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             try {
                 SQLiteDatabase db = this.getReadableDatabase();
 
-                Cursor c = db.query(TABLE_SCANNED_DATA, new String[]{KEY_REF_ID,
-                                KEY_COLUMN1, KEY_COLUMN2, KEY_COLUMN3, KEY_DATE, KEY_TIME}, KEY_REF_ID + "=?",
+                Cursor c = db.query(TABLE_SCANNED_DATA, new String[]{
+                                KEY_REF_ID, KEY_COLUMN1, KEY_COLUMN2,
+                                KEY_COLUMN3, KEY_COLUMN4, KEY_DATE, KEY_TIME},
+                        KEY_REF_ID + "=?",
                         new String[]{String.valueOf(refId)}, null, null, null, null);
                 for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
-                    scannedDatas.add(new ScannedData(c.getString(0), c.getString(1),
-                            c.getString(2), c.getString(3), c.getString(4), c.getString(5)));
+                    scannedDatas.add(new ScannedData(
+                            c.getString(0), c.getString(1),
+                            c.getString(2), c.getString(3),
+                            c.getString(4), c.getString(5), c.getString(6)));
                 }
             } catch (Exception ex) {
                 Log.w(LibConstants.LOG_ERROR, "Couldn't find ScannedData for the refId: " + refId, ex);
@@ -252,12 +281,16 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         if (!LibUtils.isBlank(fromDateStr) && !LibUtils.isBlank(toDateStr)) {
             try {
                 SQLiteDatabase db = this.getReadableDatabase();
-                Cursor c = db.query(TABLE_SCANNED_DATA, new String[]{KEY_REF_ID,
-                                KEY_COLUMN1, KEY_COLUMN2, KEY_COLUMN3, KEY_DATE, KEY_TIME}, KEY_DATE + ">=? AND " + KEY_DATE + "=<?",
+                Cursor c = db.query(TABLE_SCANNED_DATA, new String[]{
+                                KEY_REF_ID, KEY_COLUMN1, KEY_COLUMN2,
+                                KEY_COLUMN3, KEY_COLUMN4, KEY_DATE, KEY_TIME},
+                        KEY_DATE + " BETWEEN ? AND ?",
                         new String[]{fromDateStr, toDateStr}, null, null, null, null);
                 for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
-                    scannedDatas.add(new ScannedData(c.getString(0), c.getString(1),
-                            c.getString(2), c.getString(3), c.getString(4), c.getString(5)));
+                    scannedDatas.add(new ScannedData(
+                            c.getString(0), c.getString(1),
+                            c.getString(2), c.getString(3),
+                            c.getString(4), c.getString(5), c.getString(6)));
                 }
             } catch (Exception ex) {
                 Log.w(LibConstants.LOG_ERROR, "Couldn't find ScannedData for date: " + fromDateStr, ex);
@@ -270,10 +303,17 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         List<ScannedData> scannedDatas = new ArrayList<ScannedData>();
         try {
             SQLiteDatabase db = this.getReadableDatabase();
-            Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_SCANNED_DATA, null);
+            //Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_SCANNED_DATA, null);
+            Cursor cursor = db.query(TABLE_SCANNED_DATA, new String[]{
+                            KEY_REF_ID, KEY_COLUMN1, KEY_COLUMN2,
+                            KEY_COLUMN3, KEY_COLUMN4, KEY_DATE, KEY_TIME},
+                            null, null, null, null, null, null);
+
             for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
-                scannedDatas.add(new ScannedData(cursor.getString(0), cursor.getString(1),
-                        cursor.getString(2), cursor.getString(3), cursor.getString(4), cursor.getString(5)));
+                scannedDatas.add(new ScannedData(
+                        cursor.getString(0), cursor.getString(1),
+                        cursor.getString(2), cursor.getString(3),
+                        cursor.getString(4), cursor.getString(5), cursor.getString(6)));
             }
             cursor.close();
         } catch (Exception ex) {
