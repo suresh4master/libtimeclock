@@ -1,4 +1,4 @@
-package com.github.libtimeclock.data;
+package com.github.libtimeclock.db;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -6,6 +6,11 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
+
+import com.github.libtimeclock.utilities.LibConstants;
+import com.github.libtimeclock.utilities.LibUtils;
+import com.github.libtimeclock.data.RefData;
+import com.github.libtimeclock.data.ScannedData;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,18 +20,18 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     // Database Version
     private static final int DATABASE_VERSION = 1;
 
-    private static final String DATABASE_NAME = "db";
-    private static final String TABLE_CORE_DATA = "core_data";
+    private static final String DATABASE_NAME = "time_clock_db";
+    private static final String TABLE_REF_DATA = "ref_data";
     private static final String TABLE_SCANNED_DATA = "scanned_data";
     private static final String TABLE_CONFIG = "config";
 
     private static final String KEY_ID = "id";
     private static final String KEY_TIMESTAMP = "timestamp";
 
+    private static final String KEY_REF_ID = "ref_id";
     private static final String KEY_COLUMN1 = "column1";
     private static final String KEY_COLUMN2 = "column2";
     private static final String KEY_COLUMN3 = "column3";
-    private static final String KEY_COLUMN4 = "column4";
 
     private static final String KEY_TIME = "time";
     private static final String KEY_DATE = "date";
@@ -34,18 +39,18 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String KEY_KEY = "key";
     private static final String KEY_VALUE = "value";
 
-    private static final String CREATE_CORE_DATA_TABLE = new StringBuilder("CREATE TABLE IF NOT EXISTS ").append(TABLE_CORE_DATA).append(" (")
+    private static final String CREATE_REF_DATA_TABLE = new StringBuilder("CREATE TABLE IF NOT EXISTS ").append(TABLE_REF_DATA).append(" (")
             .append(KEY_ID).append(" INTEGER PRIMARY KEY AUTOINCREMENT, ")
-            .append(KEY_COLUMN1).append(" TEXT UNIQUE, ")
-            .append(KEY_COLUMN2).append(" TEXT, ")
-            .append(KEY_COLUMN3).append(" TEXT )").toString();
+            .append(KEY_REF_ID).append(" TEXT UNIQUE, ")
+            .append(KEY_COLUMN1).append(" TEXT, ")
+            .append(KEY_COLUMN2).append(" TEXT )").toString();
 
     private static final String CREATE_SCANNED_DATA_TABLE = new StringBuilder("CREATE TABLE IF NOT EXISTS ").append(TABLE_SCANNED_DATA).append(" (")
             .append(KEY_ID).append(" INTEGER PRIMARY KEY AUTOINCREMENT, ")
+            .append(KEY_REF_ID).append(" TEXT, ")
             .append(KEY_COLUMN1).append(" TEXT, ")
             .append(KEY_COLUMN2).append(" TEXT, ")
             .append(KEY_COLUMN3).append(" TEXT, ")
-            .append(KEY_COLUMN4).append(" TEXT, ")
             .append(KEY_DATE).append(" TEXT, ")
             .append(KEY_TIME).append(" TEXT )").toString();
 
@@ -73,16 +78,16 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         // Drop older table if existed
-        dropTable(db, TABLE_CORE_DATA);
-        createCoreDataTable(db);
+        dropTable(db, TABLE_REF_DATA);
+        createRefDataTable(db);
         createScannedDataTable(db);
         createConfigTable(db);
-        insertConfig("db_updated_date", "");
+        insertConfig(LibConstants.REF_DATA_UPDATED_DATE, "");
         insertConfig(LibConstants.CURRENT_DATE, LibConstants.getCurrentDateStr());
     }
 
-    private void createCoreDataTable(final SQLiteDatabase db) {
-        db.execSQL(CREATE_CORE_DATA_TABLE);
+    private void createRefDataTable(final SQLiteDatabase db) {
+        db.execSQL(CREATE_REF_DATA_TABLE);
     }
 
     private void createScannedDataTable(SQLiteDatabase db) {
@@ -106,17 +111,17 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public void dropAndCreateCoreDataTable() {
         SQLiteDatabase db = this.getWritableDatabase();
-        dropTable(db, TABLE_CORE_DATA);
-        createCoreDataTable(db);
+        dropTable(db, TABLE_REF_DATA);
+        createRefDataTable(db);
     }
 
-    public void addDataObjectsList(List<DataObject> dataObjects) {
+    public void addRefDataList(List<RefData> refDatas) {
         SQLiteDatabase db = this.getWritableDatabase();
         Log.w(LibConstants.LOG_INFO, "Start inserting into DB");
         db.beginTransaction();
         try {
-            for (DataObject dataObject : dataObjects) {
-                addDataObject(dataObject, db);
+            for (RefData refData : refDatas) {
+                addRefData(refData, db);
             }
             db.setTransactionSuccessful();
         } finally {
@@ -127,43 +132,43 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         db.close(); // Closing database connection
     }
 
-    // Adding new DataObject
-    private void addDataObject(DataObject dataObject, SQLiteDatabase db) {
+    // Adding new RefData
+    private void addRefData(RefData refData, SQLiteDatabase db) {
         try {
             ContentValues values = new ContentValues();
-            values.put(KEY_COLUMN1, dataObject.getColumn1());
-            values.put(KEY_COLUMN2, dataObject.getColumn2());
-            values.put(KEY_COLUMN3, dataObject.getColumn3());
-            db.insert(TABLE_CORE_DATA, null, values);
+            values.put(KEY_REF_ID, refData.getRefId());
+            values.put(KEY_COLUMN1, refData.getColumn2());
+            values.put(KEY_COLUMN2, refData.getColumn1());
+            db.insert(TABLE_REF_DATA, null, values);
         } catch (Exception ex) {
-            Log.w(LibConstants.LOG_ERROR, "Error inserting : " + dataObject.getColumn1() + "- " + ex.getMessage());
+            Log.w(LibConstants.LOG_ERROR, "Error inserting : " + refData.getRefId() + "- " + ex.getMessage());
         }
     }
 
-    // Getting single DataObject
-    public DataObject getDataObject(String column1) {
+    // Getting single RefData
+    public RefData getRefData(String column1) {
         SQLiteDatabase db = this.getReadableDatabase();
 
-        Cursor cursor = db.query(TABLE_CORE_DATA, new String[]{KEY_COLUMN1,
-                        KEY_COLUMN2, KEY_COLUMN3}, KEY_COLUMN1 + "=?",
+        Cursor cursor = db.query(TABLE_REF_DATA, new String[]{KEY_REF_ID,
+                        KEY_COLUMN1, KEY_COLUMN2}, KEY_REF_ID + "=?",
                 new String[]{String.valueOf(column1)}, null, null, null, null);
-        DataObject dataObject = null;
+        RefData refData = null;
         try {
             if (null != cursor) {
                 cursor.moveToFirst();
-                dataObject = new DataObject(cursor.getString(0),
+                refData = new RefData(cursor.getString(0),
                         cursor.getString(1), cursor.getString(2));
                 cursor.close();
             }
         } catch (Exception ex) {
-            Log.w(LibConstants.LOG_ERROR, "Couldn't find dataObject: " + column1);
+            Log.w(LibConstants.LOG_ERROR, "Couldn't find refData: " + column1);
         }
-        return dataObject;
+        return refData;
     }
 
-    // Getting Data Count
-    public int getDataObjectsCount() {
-        String countQuery = "SELECT * FROM " + TABLE_CORE_DATA;
+    // Getting Ref Data Count
+    public int getRefDataCount() {
+        String countQuery = "SELECT * FROM " + TABLE_REF_DATA;
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery(countQuery, null);
         cursor.close();
@@ -176,10 +181,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         try {
             SQLiteDatabase db = this.getWritableDatabase();
             ContentValues values = new ContentValues();
+            values.put(KEY_REF_ID, scannedData.getRefId());
             values.put(KEY_COLUMN1, scannedData.getColumn1());
             values.put(KEY_COLUMN2, scannedData.getColumn2());
             values.put(KEY_COLUMN3, scannedData.getColumn3());
-            values.put(KEY_COLUMN4, scannedData.getColumn4());
             values.put(KEY_DATE, scannedData.getDate());
             values.put(KEY_TIME, scannedData.getTime());
             db.insert(TABLE_SCANNED_DATA, null, values);
@@ -188,57 +193,80 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         }
     }
 
-    public Integer getDayScannedDataCount(String currentDateStr) {
+    public Integer getDayScannedDataCount(String dateStr) {
         try {
-            String countQuery = "SELECT  * FROM " + TABLE_SCANNED_DATA + " WHERE " + KEY_DATE + "='" + currentDateStr + "'";
+            String countQuery = "SELECT  * FROM " + TABLE_SCANNED_DATA + " WHERE " + KEY_DATE + "='" + dateStr + "'";
             SQLiteDatabase db = this.getReadableDatabase();
             Cursor cursor = db.rawQuery(countQuery, null);
             int cnt = cursor.getCount();
             cursor.close();
             return cnt;
         } catch (Exception ex) {
-            Log.w(LibConstants.LOG_ERROR, "Couldn't find Scanned Details", ex);
+            Log.w(LibConstants.LOG_ERROR, "Couldn't find Scanned Data", ex);
             return 0;
         }
     }
 
-    public List<ScannedData> getScannedDetails(String dateStr) {
+    public List<ScannedData> getScannedDataByDate(String dateStr) {
         List<ScannedData> scannedDatas = new ArrayList<ScannedData>();
-        try {
-            SQLiteDatabase db = this.getReadableDatabase();
+        if (!LibUtils.isBlank(dateStr)) {
+            try {
+                SQLiteDatabase db = this.getReadableDatabase();
 
-            Cursor c = db.query(TABLE_SCANNED_DATA, new String[]{KEY_COLUMN1,
-                            KEY_COLUMN2, KEY_COLUMN3, KEY_COLUMN4, KEY_DATE, KEY_TIME}, KEY_DATE + "=?",
-                    new String[]{String.valueOf(dateStr)}, null, null, null, null);
-            for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
-                scannedDatas.add(new ScannedData(c.getString(0), c.getString(1),
-                        c.getString(2), c.getString(3), c.getString(4), c.getString(5)));
+                Cursor c = db.query(TABLE_SCANNED_DATA, new String[]{KEY_REF_ID,
+                                KEY_COLUMN1, KEY_COLUMN2, KEY_COLUMN3, KEY_DATE, KEY_TIME}, KEY_DATE + "=?",
+                        new String[]{String.valueOf(dateStr)}, null, null, null, null);
+                for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
+                    scannedDatas.add(new ScannedData(c.getString(0), c.getString(1),
+                            c.getString(2), c.getString(3), c.getString(4), c.getString(5)));
+                }
+            } catch (Exception ex) {
+                Log.w(LibConstants.LOG_ERROR, "Couldn't find ScannedData for date: " + dateStr, ex);
             }
-        } catch (Exception ex) {
-            Log.w(LibConstants.LOG_ERROR, "Couldn't find ScannedData for date: " + dateStr, ex);
         }
         return scannedDatas;
     }
 
-    public List<ScannedData> getScannedDetails(String fromDateStr, String toDateStr) {
+    public List<ScannedData> getScannedDataByRefId(String refId) {
         List<ScannedData> scannedDatas = new ArrayList<ScannedData>();
-        try {
-            SQLiteDatabase db = this.getReadableDatabase();
+        if (!LibUtils.isBlank(refId)) {
+            try {
+                SQLiteDatabase db = this.getReadableDatabase();
 
-            Cursor c = db.query(TABLE_SCANNED_DATA, new String[]{KEY_COLUMN1,
-                            KEY_COLUMN2, KEY_COLUMN3, KEY_COLUMN4, KEY_DATE, KEY_TIME}, KEY_DATE + ">=? AND " + KEY_DATE + "=<?",
-                    new String[]{fromDateStr, toDateStr}, null, null, null, null);
-            for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
-                scannedDatas.add(new ScannedData(c.getString(0), c.getString(1),
-                        c.getString(2), c.getString(3), c.getString(4), c.getString(5)));
+                Cursor c = db.query(TABLE_SCANNED_DATA, new String[]{KEY_REF_ID,
+                                KEY_COLUMN1, KEY_COLUMN2, KEY_COLUMN3, KEY_DATE, KEY_TIME}, KEY_REF_ID + "=?",
+                        new String[]{String.valueOf(refId)}, null, null, null, null);
+                for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
+                    scannedDatas.add(new ScannedData(c.getString(0), c.getString(1),
+                            c.getString(2), c.getString(3), c.getString(4), c.getString(5)));
+                }
+            } catch (Exception ex) {
+                Log.w(LibConstants.LOG_ERROR, "Couldn't find ScannedData for the refId: " + refId, ex);
             }
-        } catch (Exception ex) {
-            Log.w(LibConstants.LOG_ERROR, "Couldn't find ScannedData for date: " + fromDateStr, ex);
         }
         return scannedDatas;
     }
 
-    public List<ScannedData> getScannedDetails() {
+    public List<ScannedData> getScannedDataByDateRange(String fromDateStr, String toDateStr) {
+        List<ScannedData> scannedDatas = new ArrayList<ScannedData>();
+        if (!LibUtils.isBlank(fromDateStr) && !LibUtils.isBlank(toDateStr)) {
+            try {
+                SQLiteDatabase db = this.getReadableDatabase();
+                Cursor c = db.query(TABLE_SCANNED_DATA, new String[]{KEY_REF_ID,
+                                KEY_COLUMN1, KEY_COLUMN2, KEY_COLUMN3, KEY_DATE, KEY_TIME}, KEY_DATE + ">=? AND " + KEY_DATE + "=<?",
+                        new String[]{fromDateStr, toDateStr}, null, null, null, null);
+                for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
+                    scannedDatas.add(new ScannedData(c.getString(0), c.getString(1),
+                            c.getString(2), c.getString(3), c.getString(4), c.getString(5)));
+                }
+            } catch (Exception ex) {
+                Log.w(LibConstants.LOG_ERROR, "Couldn't find ScannedData for date: " + fromDateStr, ex);
+            }
+        }
+        return scannedDatas;
+    }
+
+    public List<ScannedData> getAllScannedData() {
         List<ScannedData> scannedDatas = new ArrayList<ScannedData>();
         try {
             SQLiteDatabase db = this.getReadableDatabase();
